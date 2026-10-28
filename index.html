@@ -127,6 +127,15 @@
   .pin-dots.err{animation:shake .38s;}
   @keyframes shake{0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)}}
   .lock-tip{margin-top:12px; color:rgba(255,255,255,.55); font-size:12px; text-align:center; padding:0 30px; line-height:1.5;}
+  /* 提示按钮：第一次输错前不出现，免得一上来就替玩家解题 */
+  .lock-hint{
+    margin-top:10px; padding:7px 15px; border-radius:999px; cursor:pointer;
+    background:rgba(255,255,255,.09); border:.5px solid rgba(255,255,255,.22);
+    color:rgba(255,255,255,.72); font-size:11.5px; letter-spacing:.06em;
+    display:none; font-family:inherit;
+  }
+  .lock-hint.show{display:inline-block;}
+  .lock-hint:active{background:rgba(255,255,255,.16);}
   .lock-tip.warn{color:#F0B26B;}
   .keypad{
     display:grid; grid-template-columns:repeat(3,60px); justify-content:center;
@@ -558,6 +567,7 @@
         </div>
         <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
         <div class="lock-tip" id="lockTip">输入 4 位密码</div>
+        <button class="lock-hint" id="lockHint">想不出来？</button>
         <div class="keypad" id="keypad"></div>
       </div>
     </div>
@@ -921,11 +931,40 @@ function checkPin() {
   d.classList.add('err');
   setTimeout(() => d.classList.remove('err'), 400);
   S.tries = (S.tries || 0) + 1; save();
-  const tip = $('lockTip');
-  tip.textContent = S.tries >= 3 ? '提示：锁屏上那张回忆卡片' : '密码错误';
-  tip.classList.add('warn');
+  showLockHint();
   buf = ''; setTimeout(renderDots, 260);
 }
+
+/* 锁屏提示分四级：错 1 次出按钮；点一次给方向，再点给位置，再点直接给答案。
+   第一次输错之前按钮不出现——先让玩家自己试，失败了再递梯子，不替人解题 */
+function showLockHint() {
+  const tip = $('lockTip'), btn = $('lockHint');
+  const n = S.tries || 0;
+  if (n < 1) { tip.textContent = '输入 4 位密码'; tip.classList.remove('warn'); btn.classList.remove('show'); return; }
+  btn.classList.add('show');
+  tip.classList.add('warn');
+  if (n >= 3) {
+    tip.textContent = '密码是 0612。';
+    btn.textContent = '已给出密码';
+    btn.disabled = true;
+    return;
+  }
+  if (n >= 2) {
+    tip.textContent = '提示：锁屏上那张回忆卡片，小乖的名字后面跟着一串数字。';
+    btn.textContent = '还是想不出来';
+    return;
+  }
+  tip.textContent = '密码错误';
+  btn.textContent = '想不出来？';
+}
+
+$('lockHint').addEventListener('click', e => {
+  e.stopPropagation();
+  // 点就是主动求提示，相当于又多错一次，先加再渲染，这样第一次点就能看到方向
+  S.tries = (S.tries || 0) + 1; save();
+  showLockHint();
+  buf = ''; renderDots();
+});
 
 $('keypad').addEventListener('click', e => {
   const el = e.target.closest('.key-num');
@@ -1176,10 +1215,44 @@ const WRONG_HINT = [
   '这两条对不上。五年前那天夜里，谁没能拦住谁？'
 ];
 
-// 卡住时优先按当前状态给方向，而不是复述同一句
+// 这一轮需要、但玩家还拿不到的证据，按"要先去哪儿"翻译成一句人话
+const UNLOCK_HINT = {
+  recent: '相册里「最近删除」还折着——先把它展开，编号会告诉你少了什么。',
+  vault:  '相册底下还有个「私密相册」。密码在信息里那张车票上，看发车时间。',
+  jing:   '有个人不在信鸽的列表里。回信鸽搜索栏，搜她的姓——「林」。'
+};
+
+// 卡住时先说"还差什么、去哪儿拿"，再说方向；都对上了才退回笼统的方向提示
 function hintFor(r) {
+  const t = D.trial[r];
+  if (!t) return WRONG_HINT[0];
+
+  // 还没翻的板块：点名说哪个板块
+  const unviewed = [...new Set(t.need.map(id => D.evidence.find(e => e.id === id)?.src)
+    .filter(src => src && !S.viewed[src]))];
+  if (unviewed.length) return `这两条对不上。你还漏了${unviewed.join('和')}没翻——证据在那边。`;
+
+  // 板块翻了但证据被锁：说清解锁方式
+  const locked = t.need
+    .map(id => D.evidence.find(e => e.id === id))
+    .filter(e => e && e.lock && !(LOCK_OK[e.lock] && LOCK_OK[e.lock]()))
+    .map(e => e.lock);
+  if (locked.length) return '这两条对不上。' + UNLOCK_HINT[locked[0]];
+
+  // 都拿得到，说明是思路问题，给方向
   if (r === 2 && !S.foundJing) return '这两条对不上。有个人的会话不在列表里——在信鸽里搜一下她的姓。';
   return WRONG_HINT[Math.min(r, WRONG_HINT.length - 1)];
+}
+
+// 证据不够时别只说"还有地方没翻"，直接指出还差哪一个板块 / 哪一道锁
+function missingWhere() {
+  const pool = poolList();
+  const miss = D.evidence.filter(e => !pool.some(p => p.id === e.id));
+  const tab = miss.map(e => e.src).find(s => !S.viewed[s]);
+  if (tab) return `去「${tab}」翻一翻。`;
+  const lock = miss.map(e => e.lock).find(l => l && !(LOCK_OK[l] && LOCK_OK[l]()));
+  if (lock) return UNLOCK_HINT[lock];
+  return '这一轮需要的两份证据，你都还没集齐。';
 }
 
 function renderTrial(keepScroll) {
@@ -1211,7 +1284,7 @@ function renderTrial(keepScroll) {
           <span class="bd"><span class="ct">${e.title}</span><span class="cb">${e.body}</span></span>
         </div>`).join('')}
     </div>
-    ${pool.length < 2 ? '<div class="fb bad on">证据不够。还有地方没翻。</div>' : ''}
+    ${pool.length < 2 ? `<div class="fb bad on">证据不够。${missingWhere()}</div>` : ''}
     <div style="height:4px"></div>`;
 
   $('trialFoot').innerHTML = `
@@ -1311,6 +1384,7 @@ function renderTruth(keepScroll) {
       <div class="l">举证成功</div>
       <div class="r">${S.solved === D.trial.length ? '三段口供，全部击碎。' : '还有口供没被击碎。'}</div>
       <div class="readlog">三段口供 · <b>已读</b>　　一条消息 · <b>未送达</b></div>
+      ${S.plays > 0 ? `<div class="readlog">第 <b>${S.plays + 1}</b> 轮调查</div>` : ''}
     </div>
     <div class="truth"><h3>${D.truth.title}</h3>${paras}</div>
     ${draft}
@@ -1335,9 +1409,13 @@ function renderTruth(keepScroll) {
   }
 
   $('againBtn').addEventListener('click', () => {
-    S = { unlocked: true, vaultOpen: false, tries: 0, read: {}, seen: {}, viewed: {},
+    // 保留两样东西：看过哪些照片（相册里的 ✓ 不该被抹掉，那是玩家翻过的痕迹）、
+    // 以及通关次数。其余是这个案子本身的进度，重开就该清零
+    const keepSeen = { ...S.seen };
+    S = { unlocked: true, vaultOpen: false, tries: 0, read: {}, seen: keepSeen, viewed: {},
           round: 0, picked: [], solved: 0, wrongTries: 0,
-          foundJing: false, recentSeen: false, ending: '' };
+          foundJing: false, recentSeen: false, ending: '',
+          plays: (S.plays || 0) + 1 };
     vaultTries = 0;
     if ($('searchIn')) $('searchIn').value = '';
     save(); renderAll(); goTab('chatlist');
@@ -1366,6 +1444,8 @@ function renderAll() {
 
 $('lockDate').textContent = D.lockScreen.dateLabel;
 renderAll();
+// 输错过几次也存了档：刷新回来要接着给提示，不能让玩家从零再试一遍
+if (!S.unlocked) showLockHint();
 
 stack = S.unlocked ? ['chatlist'] : ['lock'];
 renderStack();
