@@ -425,6 +425,13 @@
   @keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
   @media (prefers-reduced-motion:reduce){ .truth p{animation:none;} }
   .epi{margin-top:24px; padding-top:18px; border-top:.5px solid #1E2831; font-size:12px; letter-spacing:.1em; color:#5E7085;}
+  /* 回执：受托调查人发出去的那一条，用等宽系统字，别写成旁白 */
+  .receipt{
+    margin-top:14px; padding:11px 13px; border:.5px solid #202B36; border-radius:8px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:10.5px; line-height:1.95; letter-spacing:.05em; color:#556A80;
+  }
+  .receipt b{color:#8FA6BC; font-weight:600; letter-spacing:.1em;}
   .readlog{margin-top:13px; font-size:11px; letter-spacing:.14em; color:#46586A; text-align:center;}
   .readlog b{color:#7E93A8; font-weight:500;}
   .draft-card{
@@ -556,8 +563,8 @@
           <div>最近删除</div><div class="st" id="recentSt">2 项</div>
         </div>
         <div class="recent-panel" id="recentPanel">
-          <div class="rp-row"><span>IMG_0525</span><span class="rp-date">11/03 23:14</span></div>
-          <div class="rp-row"><span>IMG_0526</span><span class="rp-date">11/03 23:14</span></div>
+          <div class="rp-row"><span>IMG_0525</span><span class="rp-date">10/27 23:14</span></div>
+          <div class="rp-row"><span>IMG_0526</span><span class="rp-date">10/27 23:14</span></div>
           <div class="rp-sys">同一分钟删除 · 已清除，不可恢复</div>
         </div>
         <div class="trash-bar" id="trashBar">
@@ -648,7 +655,7 @@ const CASE = {
     {
       id: 't_jing', name: '林静', initial: '静', bg: '#9AA4AE', unread: 0, ghost: true,
       hidden: true, goneLabel: '号码已注销',
-      draft: '这次我送到站台。',
+      draft: '别回头。这次我送到站台。',
       messages: [
         { from: 'sys', t: '以下消息未送达', time: '' },
         { from: 'me', t: '你到哪了？先别上车。', time: '五年前 09:12', fail: true },
@@ -689,7 +696,7 @@ const CASE = {
 
   vaultPhotos: [
     { id: 'p_ticket', docKind: 'ticket', title: 'IMG_0542', note: '两张客运票。同一条线路，日期不一样。',
-      ticket: { dest: '临川', sub: '客运', rows: [['11/01　08:40', '2 号座'], ['11/15　08:40', '7 号座']], names: ['陈 *', '林 *'], code: 'NO.8842 0173 6620' } },
+      ticket: { dest: '临川', sub: '客运', rows: [['11/01　08:40', '2 号座'], ['11/15　08:40', '7 号座']], names: ['林 *', '陈 *'], code: 'NO.8842 0173 6620' } },
     { id: 'p_plan', docKind: 'plan', title: 'IMG_0547', note: '一张纸，手写的。没有标题。',
       plan: { big: '80000', rows: [['已给', '20000'], ['还剩', '60000'], ['每月', '5000'], ['期数', '12']] } }
   ],
@@ -699,10 +706,11 @@ const CASE = {
       { title: '退路', time: '昨天 22:34', body: '送她上车之后，这边退房。城西那个单间住到月中。' },
       { title: '灯', time: '昨天 21:30', body: '客厅灯 23:00 开，01:00 关。卧室那盏不开，会照到楼下。' },
       { title: '隔壁', time: '昨天 22:30', body: '上夜班，凌晨两点回来，在走廊抽烟。窗户关不严，烟味全灌进来。' },
+      { title: '香菜', time: '昨天 22:12', body: '我一口都不吃。她每顿都要。' },
       { title: '提醒', time: '今天 07:18', body: '别让她看见票。' }
     ]},
     { group: '订单', items: [
-      { title: '外卖', time: '近 23 天', body: '单人份 · 清淡 · 备注「不要餐具」。共 23 单，无第二份。' },
+      { title: '外卖', time: '近 23 天', body: '单人份 · 备注「不要餐具、加香菜」。共 23 单，无第二份。' },
       { title: '已卖出', time: '近 30 天', body: '相机镜头 ¥4200　手表 ¥6800　（均已成交）' },
       { title: '已买入', time: '近 30 天', body: '定时插座 ¥39　二手手机 ¥180' }
     ]},
@@ -725,7 +733,7 @@ const CASE = {
     { id: 'ev_water',   src: '信息', title: '本月用水 0.8 吨', body: '上月 3.2 吨，下降 75%' },
     { id: 'ev_power',   src: '信息', title: '夜间用电仅占 4%', body: '本月 41 度，00:00—06:00' },
     { id: 'ev_bus',     src: '信息', title: '11/01 临川 08:40 出票', body: '单程票一张' },
-    { id: 'ev_takeout', src: '记录', title: '23 天单人份外卖', body: '无第二份，备注不要餐具' },
+    { id: 'ev_takeout', src: '记录', title: '23 天单人份外卖', body: '无第二份，每单都加香菜' },
     { id: 'ev_sell',    src: '记录', title: '卖出镜头与手表', body: '¥4200 + ¥6800' },
     { id: 'ev_buy',     src: '记录', title: '买入定时插座与旧手机', body: '¥39 + ¥180' },
     { id: 'ev_router',  src: '记录', title: '凌晨 01:12 旧设备上线', body: '每天约 40 分钟，MAC 尾号 3C' },
@@ -739,7 +747,7 @@ const CASE = {
     { id: 'ev_old',     src: '相册', title: '0402 合影背面', body: '「致我最好的朋友 林静」' },
     { id: 'ev_gap',     src: '相册', lock: 'recent', title: '编号少了 0525 / 0526', body: '0523、0524、0527，中间空了两个' },
     // 锁在私密相册里的东西，没输密码不能出现在证据池里（否则直接剧透结局）
-    { id: 'ev_ticket',  src: '相册', lock: 'vault', title: '0542 两张票差半个月', body: '11/01 与 11/15，陈* 林*' },
+    { id: 'ev_ticket',  src: '相册', lock: 'vault', title: '0542 两张票差半个月', body: '11/01 林*　11/15 陈*' },
     // 林静的会话不在列表里，搜不到她就拿不到这条
     { id: 'ev_jing',    src: '会话', lock: 'jing', title: '林静：三条未送达', body: '「你到哪了？先别上车」' },
     { id: 'ev_landlord',src: '会话', title: '王哥：转租、押金不要、月底搬', body: '「转到她名下」' }
@@ -752,7 +760,7 @@ const CASE = {
       say: '我和小林一起住。她每天洗漱、做饭，作息很正常。',
       ask: '出示两份证据，指出这句话和事实的矛盾。',
       need: ['ev_water', 'ev_takeout'],
-      good: '0.8 吨水，是根本不开火的人才用得出来的量。她说「每天做饭」。23 天，23 份单人份外卖，从来没有第二份。这屋里只住着一个人。',
+      good: '0.8 吨水，是根本不开火的人才用得出来的量。她说「每天做饭」。可二十三天的外卖，二十三份，从来只有一份——而且每一份都加了香菜，你自己的便签里写着，你一口都不吃。吃饭的人不是你。这屋里只住着一个人。',
       next: '陈姐 · 第二次口供',
       nextSay: '……好。我们不是一起住。'
     },
@@ -1251,11 +1259,11 @@ function renderTruth(keepScroll) {
          <div class="dc-h">草稿箱</div>
          ${ended === 'delete'
            ? '<div class="dc-t gone">（已删除）</div>'
-           : '<div class="dc-t">别回头。</div><div class="dc-fail">发送失败 · 对方号码已注销</div>'}
+           : '<div class="dc-t">别回头。<br>这次我送到站台。</div><div class="dc-fail">发送失败 · 对方号码已注销</div>'}
        </div>`
     : `<div class="draft-card">
          <div class="dc-h">草稿箱 · 未发送</div>
-         <div class="dc-t">别回头。</div>
+         <div class="dc-t">别回头。<br>这次我送到站台。</div>
          <div class="dc-btns">
            <button class="primary" id="sendDraft">发出去</button>
            <button id="delDraft">删掉</button>
@@ -1272,6 +1280,7 @@ function renderTruth(keepScroll) {
     <div class="truth"><h3>${D.truth.title}</h3>${paras}</div>
     ${draft}
     <div class="epi">${D.truth.epilogue}${ENDING_TAIL[ended] || ''}</div>
+    <div class="receipt"><b>回执已发出</b>　城东六楼 · 无异常　目标 11/01 08:40 离城　请于临川站接人</div>
     <div class="disclaim">本故事纯属虚构。人物、地点、事件均无原型，与任何真实案件、真实人物无关。</div>
     <button class="again" id="againBtn">重新调查</button>
     <div style="height:20px"></div>`;
