@@ -538,6 +538,53 @@
   }
   .modal-box .cancel{margin-top:9px; background:transparent; color:var(--ink-3); font-weight:500;}
   .modal-err{color:var(--bad); font-size:12px; min-height:16px;}
+
+  /* 案件列表：开屏第一屏，只在有多个案子时出现 */
+  #p-cases{background:#ECEEF1;}
+  .cases-hd{padding:calc(26px + var(--safe-t)) 24px 4px;}
+  .cases-hd .k{font-size:10.5px; letter-spacing:.24em; color:var(--ink-3);}
+  .cases-hd h1{font-size:23px; font-weight:650; margin:8px 0 0; letter-spacing:.01em;}
+  .cases-hd p{font-size:12px; color:var(--ink-2); margin-top:7px; line-height:1.6;}
+  .case-list{flex:1; overflow-y:auto; padding:16px 18px calc(28px + var(--safe-b));}
+  .case-card{
+    background:#fff; border-radius:15px; padding:15px 15px 14px; margin-bottom:11px;
+    border:.5px solid var(--line); cursor:pointer; position:relative;
+  }
+  .case-card:active{background:#F6F8FA;}
+  .case-card .cid{font-size:10px; letter-spacing:.16em; color:var(--ink-3);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  .case-card .ct{font-size:16.5px; font-weight:650; margin:5px 0 6px; color:var(--ink);}
+  .case-card .cd{font-size:12.5px; line-height:1.6; color:var(--ink-2);}
+  .case-card .done{
+    position:absolute; right:13px; top:13px; font-size:10px; letter-spacing:.1em;
+    color:var(--ok); border:.5px solid #BFDCCC; background:#F0F8F3;
+    padding:2px 7px; border-radius:999px;
+  }
+  .cases-ft{padding:0 24px calc(16px + var(--safe-b)); font-size:10.5px; color:var(--ink-3); line-height:1.7; text-align:center;}
+
+  /* 顶栏左侧的「案卷」返回入口：只在有多个案子时显示 */
+  .case-switch{
+    flex:0 0 auto; font-size:11.5px; color:var(--brand); letter-spacing:.04em;
+    padding:6px 2px; cursor:pointer; display:none;
+  }
+  body.multi-case .case-switch{display:block;}
+  body.multi-case .topbar>.sp:first-child{display:none;}
+
+  /* 锁屏上的「案卷」入口：只有多案时显示，压在公司状态栏下面一行 */
+  .lock-switch{
+    position:absolute; top:calc(34px + var(--safe-t)); right:20px; z-index:5;
+    font-size:11px; letter-spacing:.06em; color:rgba(255,255,255,.62);
+    padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.08);
+    cursor:pointer; display:none;
+  }
+  body.multi-case .lock-switch{display:block;}
+
+  /* 分支结局的那一小段：比正文轻，但比尾声重 */
+  .branch{
+    margin-top:20px; padding:13px 14px; border-left:2px solid #33577E;
+    background:#0D141C; border-radius:0 10px 10px 0;
+    font-size:13.5px; line-height:1.95; color:#9FB4C8;
+  }
 </style>
 </head>
 <body>
@@ -545,25 +592,37 @@
   <div class="notch"></div>
   <div class="screen">
 
+
+    <div class="page" id="p-cases">
+      <div class="cases-hd">
+        <div class="k">未命名档案室</div>
+        <h1>选一个案子</h1>
+        <p>一部手机，一个人，几句说法。<br>翻完，再决定信谁。</p>
+      </div>
+      <div class="case-list" id="caseList"></div>
+      <div class="cases-ft">本故事纯属虚构。人物、地点、事件均无原型。</div>
+    </div>
+
     <div class="page on" id="p-lock">
       <div class="lock-wall"></div>
       <div class="lock-ui">
         <div class="sb light"><span>09:41</span><span>85%</span></div>
+        <div class="lock-switch" id="lockSwitch">案卷</div>
         <div class="lock-clock">
           <div class="time">09:41</div>
           <div class="date" id="lockDate">10月28日 星期三</div>
         </div>
         <div class="lock-card">
-          <div class="lock-card-img"><img src="assets/photos/dog.webp" alt="" decoding="async"></div>
+          <div class="lock-card-img"><img id="lockImg" src="assets/photos/dog.webp" alt="" decoding="async"></div>
           <div>
             <div style="font-size:10px;opacity:.7;">相册回忆</div>
-            <div style="font-size:13px;font-weight:600;">小乖　2018.06.12</div>
+            <div style="font-size:13px;font-weight:600;" id="lockCap">小乖　2018.06.12</div>
           </div>
         </div>
         <div class="lock-noti">
           <div class="ln-top"><span class="ln-app">信息</span><span class="ln-time">现在</span></div>
-          <div class="ln-from">138 4471 0620</div>
-          <div class="ln-text">临川这边的话带到了。她说那天她在站外等，不用进站。</div>
+          <div class="ln-from" id="lockFrom">138 4471 0620</div>
+          <div class="ln-text" id="lockNoti">临川这边的话带到了。她说那天她在站外等，不用进站。</div>
         </div>
         <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
         <div class="lock-tip" id="lockTip">输入 4 位密码</div>
@@ -676,12 +735,21 @@
 /* =========================================================
    数据层
    ========================================================= */
-const CASE = {
+const CASE_001 = {
   caseId: 'case_001',
   title: '完美合租人',
   appName: '信鸽',
-  lockScreen: { pin: '0612', dateLabel: '10月28日 星期三' },
+  blurb: '合租的屋子里只住着一个人。用 0.8 吨水，推翻她的第一句话。',
+  lockScreen: { pin: '0612', dateLabel: '10月28日 星期三',
+    hint: { where: '提示：锁屏上那张回忆卡片，小乖的名字后面跟着一串数字。' } },
   vault: { pin: '0840' },
+  // 锁屏上那两块内容也归案件管，换案子时整块换掉
+  lock: {
+    img: 'assets/photos/dog.webp',
+    cap: '小乖　2018.06.12',
+    notiFrom: '138 4471 0620',
+    noti: '临川这边的话带到了。她说那天她在站外等，不用进站。'
+  },
 
   threads: [
     {
@@ -820,6 +888,9 @@ const CASE = {
       say: '五年前那事，村里谁不知道是你撺掇她跑的？',
       ask: '出示两份证据，指出这句话和事实的矛盾。',
       need: ['ev_jing', 'ev_old'],
+      // 另一条成立的路：把那张 11/01 的票也摆上去，等于把小林要到的那张票交了出去。
+      // 照样驳得倒二叔，但收尾不一样——这条线是给愿意多想一步的人准备的
+      alt: { need: ['ev_jing', 'ev_bus'], recap: 'bus' },
       good: '五年前那天，你一直在发「你到哪了」「先别上车」，一条都没送达。合影背面写的是「致我最好的朋友」。这不是撺掇。',
       next: '',
       nextSay: ''
@@ -839,33 +910,193 @@ const CASE = {
       '陈姐没有解释过。',
       '有些事，解释不了。'
     ],
-    epilogue: '本案结案。委托人安全。'
+    epilogue: '本案结案。委托人安全。',
+    receipt: '<b>回执已发出</b>　→ 138 4471 0620<br>城东六楼 · 无异常　目标 11/01 08:40 离城　请于临川站接人'
   }
 };
+
+/* =========================================================
+   case_002 · 值夜的人
+   ---------------------------------------------------------
+   不新增美术：照片全部复用 case_001 的素材，但换一套说法——
+   同一个物体在另一个故事里是另一件证物。这是多案件最省的做法。
+   ========================================================= */
+const CASE_002 = {
+  caseId: 'case_002',
+  title: '值夜的人',
+  appName: '值夜',
+  blurb: '泵报过九次警，记录簿上只有一次。设备不会撒谎，只会坏。',
+  lockScreen: { pin: '0317', dateLabel: '9月17日 星期三',
+    hint: { where: '提示：锁屏那张打卡记录，最后一行的时间。' } },
+  vault: { pin: '2245' },
+  lock: {
+    img: 'assets/photos/tape.webp',
+    cap: '值班表　2025.03.17',
+    notiFrom: '120 33（总控室）',
+    noti: '三号泵今晚又跳了。按规程，跳一次就要报一次。'
+  },
+
+  threads: [
+    { id: 'n_chief', name: '班长', initial: '班', bg: '#5C6B7A', unread: 3,
+      messages: [
+        { from: 'them', t: '小周，三号泵的报警你今晚处理了几次？', time: '今天 05:12' },
+        { from: 'me',   t: '两次。都恢复正常了。', time: '今天 05:20' },
+        { from: 'them', t: '记录簿上写的是零次。', time: '今天 05:21' },
+        { from: 'them', t: '你先别补。等我到。', time: '今天 05:22' }
+      ] },
+    { id: 'n_zhou', name: '周工（上一个夜班）', initial: '周', bg: '#7A6A5C', unread: 0,
+      messages: [
+        { from: 'them', t: '三号泵的振值我调过上限了，你别动。', time: '昨天 19:40' },
+        { from: 'me',   t: '调到多少？', time: '昨天 19:44' },
+        { from: 'them', t: '别问，问了你就得写。', time: '昨天 19:46' }
+      ] },
+    { id: 'n_sister', name: '姐', initial: '姐', bg: '#8C7B8C', unread: 1,
+      draft: '那笔钱我先不还了。',
+      messages: [
+        { from: 'them', t: '你这个月上几个夜班？', time: '昨天 22:10' },
+        { from: 'me',   t: '十二个。', time: '昨天 22:15' },
+        { from: 'them', t: '妈那边的费用，这个月我自己想办法。', time: '昨天 22:31' }
+      ] }
+  ],
+
+  photos: [
+    { id: 'q_tape',  variant: 'tape',  src: 'assets/photos/tape.webp',  title: 'IMG_1183',
+      note: '泵体上一圈胶带，把位号牌贴歪了。撕掉一半的包装，露出「…胶带」三个字。' },
+    { id: 'q_towel', variant: 'towel', src: 'assets/photos/towel.webp', title: 'IMG_1184',
+      note: '一段厚布垫在管托下，叠了两折。泵体底座的漆磨掉了一片。' },
+    { id: 'q_cord',  variant: 'cord',  src: 'assets/photos/cord.webp',  title: 'IMG_1185',
+      note: '一根细线从接线盒底缝垂下来，绕到配电柜侧面。' },
+    { id: 'q_old',   docKind: 'note',  src: 'assets/photos/old.webp',   title: 'IMG_1170',
+      note: '拍的是值班记录簿的一页，背面透过来几个字。' }
+  ],
+
+  vaultPhotos: [
+    { id: 'q_log', docKind: 'plan', title: 'IMG_1190', note: '一张手抄的表，没有标题。',
+      plan: { big: '12', rows: [['本月夜班', '12'], ['应报', '12'], ['已报', '4'], ['未报', '8']] } }
+  ],
+
+  records: [
+    { group: '台账', items: [
+      { title: '三号泵报警', time: '本月', body: '系统记录 9 次，值班记录簿记载 1 次。', mono: true },
+      { title: '振动上限', time: '9月10日', body: '由 4.5 mm/s 调整为 7.2 mm/s，操作人 周。', mono: true },
+      { title: '夜班津贴', time: '本月', body: '12 元 / 班，本月 12 班，合计 144 元。' }
+    ]},
+    { group: '便签', items: [
+      { title: '别写', time: '今天 04:50', body: '写了就要停机，停了就要停机检修单，检修单要签字。' },
+      { title: '姐', time: '昨天 22:40', body: '她的钱不能要。' }
+    ]}
+  ],
+
+  sms: [
+    { from: '【总控室】', text: '三号泵振动越限 9 次，其中 8 次未生成工单。请说明。', warn: false },
+    { from: '【安监】', text: '本月安全绩效：达标。无事故、无停机。', warn: false },
+    { from: '【银行】', text: '您尾号 6620 的账户入账 8,000.00 元，摘要：借款。', warn: false },
+    { from: '120 33（总控室）', text: '三号泵今晚又跳了。按规程，跳一次就要报一次。', warn: false }
+  ],
+
+  evidence: [
+    { id: 'qv_gap',    src: '记录', title: '系统 9 次 vs 台账 1 次', body: '差 8 次' },
+    { id: 'qv_limit',  src: '记录', title: '振动上限被调高', body: '4.5 → 7.2 mm/s，操作人 周' },
+    { id: 'qv_note',   src: '记录', title: '便签「别写」', body: '写了就要停机' },
+    { id: 'qv_tape',   src: '相册', title: '1183 位号牌被贴歪', body: '胶带撕掉一半' },
+    { id: 'qv_pad',    src: '相册', title: '1184 底座垫了厚布', body: '漆磨掉一片' },
+    { id: 'qv_money',  src: '信息', title: '入账 8000，摘要借款', body: '昨天到的' },
+    { id: 'qv_plan',   src: '相册', lock: 'vault', title: '手抄表：应报 12，已报 4', body: '未报 8' }
+  ],
+
+  trial: [
+    { who: '小周 · 第一次陈述',
+      say: '三号泵这个月一直正常，报警都是误报，我处理完就复位了。',
+      ask: '出示两份证据，指出这句话和记录的矛盾。',
+      need: ['qv_gap', 'qv_limit'],
+      good: '系统记了九次，记录簿只有一次。剩下八次不是没发生，是没写。而振动上限在 9 月 10 日被人从 4.5 调到了 7.2——调到这个数，泵再抖也不会报。报警变少，不是你处理得快，是它被捂住了。',
+      next: '小周 · 第二次陈述', nextSay: '……上限是周工调的，我不知道。' },
+    { who: '小周 · 第二次陈述',
+      say: '我家困难，我需要这份津贴。我不会拿设备开玩笑。',
+      ask: '出示两份证据，指出这句话和事实的矛盾。',
+      need: ['qv_note', 'qv_money'],
+      good: '便签写着「写了就要停机，停了就要检修单，检修单要签字」。你在算的不是设备，是签字。而昨天你账上进了八千，摘要写着借款——饭钱已经有人给了，设备还是那个设备。',
+      next: '周工 · 陈述', nextSay: '……钱是我让他别还的。' },
+    { who: '周工 · 陈述',
+      say: '上限是我调的。跟小周没关系，他什么都不知道。',
+      ask: '出示两份证据，指出这句话和事实的矛盾。',
+      need: ['qv_tape', 'qv_pad'],
+      good: '位号牌是用胶带贴歪的，底座下面垫了厚布——这两样都不是一个人夜里顺手能做的，是有人反复试、反复垫，才让泵「看起来」不抖。这不是调一个数，这是每天来。他天天来。',
+      next: '', nextSay: '' }
+  ],
+
+  truth: {
+    title: '真相',
+    paragraphs: [
+      '三号泵早就该停了。',
+      '振动上限被调高，记录被抹平，底座垫了布，位号牌贴歪了——四件事叠在一起，泵就不再「报警」。',
+      '它不报警，就不停机。不停机，就不用写检修单。不写检修单，就不用签字。',
+      '周工签过。小周也快要签了。',
+      '八千块是周工打过去的，摘要写「借款」。他不想让这件事看起来像交易。',
+      '这个月夜班十二个，报告四次。剩下的八次，在系统里，在泵身上，在两个人的沉默里。',
+      '设备不会撒谎。它只会坏。'
+    ],
+    epilogue: '本案移交安监。设备已停。',
+    allDown: '三份陈述，全部击穿。',
+    someLeft: '还有陈述没被击穿。',
+    readlog: '三次陈述 · <b>已报</b>　　八次报警 · <b>未报</b>',
+    receipt: '<b>报告已提交</b>　→ 总控室<br>三号泵 · 已停机　振动上限已复位 4.5 mm/s　待检修'
+  }
+};
+
+/* =========================================================
+   案件注册表
+   ========================================================= */
+/* 引擎只认 D，换案子就是换一次 D 的指向。加新案件：写一个同结构对象，塞进这里 */
+const CASES = [CASE_001, CASE_002];
+
+// 当前案件。默认第一个；老玩家存档里没有 caseId，默认回 case_001
+const $ = id => document.getElementById(id);
+let D = CASES[0];
 
 /* =========================================================
    状态
    ========================================================= */
 /* 存档带 schema 版本：内容改动后老存档必须作废，否则 viewed 会解锁错证据 */
-const KEY = 'case_001';
-const SCHEMA = 9;
+const SCHEMA = 10;
+const KEY = () => 'case|' + D.caseId + '|v' + SCHEMA;
+// 跨案件的进度（哪些案子通过了）单独存，换案子不会被清
+const PROG_KEY = 'progress|v1';
+const LAST_KEY = 'lastCase';
+
 let S = {
   unlocked: false, vaultOpen: false, tries: 0,
   read: {}, seen: {}, viewed: {},
   round: 0, picked: [], solved: 0, wrongTries: 0,
-  foundJing: false, recentSeen: false, ending: ''
-};
-try {
-  const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
-  if (raw && raw.__v === SCHEMA) { delete raw.__v; Object.assign(S, raw); }
-  else if (raw) localStorage.removeItem(KEY);
-} catch (e) {}
-const save = () => {
-  try { localStorage.setItem(KEY, JSON.stringify(Object.assign({}, S, { __v: SCHEMA }))); } catch (e) {}
+  foundHidden: false, recentSeen: false, ending: '', recap: '', plays: 0
 };
 
-const $ = id => document.getElementById(id);
-const D = CASE;
+function blankState() {
+  return { unlocked: false, vaultOpen: false, tries: 0,
+    read: {}, seen: {}, viewed: {},
+    round: 0, picked: [], solved: 0, wrongTries: 0,
+    foundHidden: false, recentSeen: false, ending: '', recap: '', plays: 0 };
+}
+
+function loadState() {
+  S = blankState();
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY()) || 'null');
+    if (raw && raw.__v === SCHEMA) { delete raw.__v; Object.assign(S, raw); }
+    else if (raw) localStorage.removeItem(KEY());
+  } catch (e) {}
+}
+
+const save = () => {
+  try { localStorage.setItem(KEY(), JSON.stringify(Object.assign({}, S, { __v: SCHEMA }))); } catch (e) {}
+};
+
+// 通关记录：{ case_001: 'send' | 'delete' | ... }，用来在案件列表上打标
+const loadProg = () => {
+  try { return JSON.parse(localStorage.getItem(PROG_KEY) || '{}') || {}; } catch (e) { return {}; }
+};
+const saveProg = p => { try { localStorage.setItem(PROG_KEY, JSON.stringify(p)); } catch (e) {} };
+const markSolved = id => { const p = loadProg(); p[id] = S.ending || 'done'; saveProg(p); };
 
 /* =========================================================
    页面栈
@@ -880,7 +1111,7 @@ function renderStack() {
     p.classList.toggle('on', id === cur);
     p.classList.toggle('under', id === prev);
   });
-  const showTab = cur !== 'lock' && cur !== 'result' && cur !== 'photo';
+  const showTab = cur !== 'lock' && cur !== 'result' && cur !== 'photo' && cur !== 'cases';
   $('tabbar').classList.toggle('show', showTab);
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === cur));
   if (TABS_VIEW[cur]) { S.viewed[TABS_VIEW[cur]] = true; save(); }
@@ -943,14 +1174,16 @@ function showLockHint() {
   if (n < 1) { tip.textContent = '输入 4 位密码'; tip.classList.remove('warn'); btn.classList.remove('show'); return; }
   btn.classList.add('show');
   tip.classList.add('warn');
+  // 提示文案跟着案件走，第二个案子换成别的回忆卡时不用再改这里
+  const h = D.lockScreen.hint || {};
   if (n >= 3) {
-    tip.textContent = '密码是 0612。';
+    tip.textContent = '密码是 ' + D.lockScreen.pin + '。';
     btn.textContent = '已给出密码';
     btn.disabled = true;
     return;
   }
   if (n >= 2) {
-    tip.textContent = '提示：锁屏上那张回忆卡片，小乖的名字后面跟着一串数字。';
+    tip.textContent = h.where || '提示：锁屏上那张回忆卡片。';
     btn.textContent = '还是想不出来';
     return;
   }
@@ -986,14 +1219,15 @@ function renderList() {
   $('appTitle').textContent = D.appName;
   const q = $('searchIn') ? $('searchIn').value.trim() : '';
 
-  // 已注销的会话不在列表里，只能按名字搜出来——这是"她得被找到"而不是"被递给"
-  // 能不能看见只由 hidden / 当前搜索词决定，跟 foundJing 无关。
-  // 之前写成 !S.foundJing 判断，导致搜过一次之后她就永久留在列表里，刷新也在
+  // 隐藏会话不在列表里，只能按名字搜出来——这是"她得被找到"而不是"被递给"
+  // 能不能看见只由 hidden / 当前搜索词决定，跟"有没有搜到过"无关。
+  // 之前用"是否搜到过"判断，导致搜过一次之后她就永久留在列表里，刷新也在
   const hit = t => t.hidden && !q ? false
     : (!q ? true : (t.name.includes(q) || t.messages.some(m => m.t && m.t.includes(q))));
 
-  if (!S.foundJing && q && D.threads.some(t => t.hidden && t.name.includes(q))) {
-    S.foundJing = true; save();
+  // 不再写死人名：任何 hidden 会话被搜到，都算"找到了"
+  if (!S.foundHidden && q && D.threads.some(t => t.hidden && t.name.includes(q))) {
+    S.foundHidden = true; save();
   }
 
   const list = D.threads.filter(hit);
@@ -1195,7 +1429,7 @@ function renderSms() {
    ========================================================= */
 const LOCK_OK = {
   vault: () => !!S.vaultOpen,     // 私密相册没解锁
-  jing:  () => !!S.foundJing,     // 没搜到林静，那条会话不存在
+  jing:  () => !!S.foundHidden,   // 隐藏会话没搜出来，那条证据不存在
   recent:() => !!S.recentSeen     // 没看过最近删除
 };
 
@@ -1240,7 +1474,7 @@ function hintFor(r) {
   if (locked.length) return '这两条对不上。' + UNLOCK_HINT[locked[0]];
 
   // 都拿得到，说明是思路问题，给方向
-  if (r === 2 && !S.foundJing) return '这两条对不上。有个人的会话不在列表里——在信鸽里搜一下她的姓。';
+
   return WRONG_HINT[Math.min(r, WRONG_HINT.length - 1)];
 }
 
@@ -1315,7 +1549,10 @@ function submitProof() {
   const b = t.need.slice().sort().join(',');
   const fb = $('feedback');
 
-  if (a === b) {
+  // alt 是同一轮的第二种成立解法，命中就记下来，结局会走另一条尾巴
+  const altHit = t.alt && a === t.alt.need.slice().sort().join(',');
+  if (a === b || altHit) {
+    if (altHit) S.recap = t.alt.recap;
     S.solved++;
     S.round++;
     S.picked = [];
@@ -1352,7 +1589,16 @@ function submitProof() {
 // 两种选择的差别只在最后一句，且都不改变"案子结了"这件事
 const ENDING_TAIL = {
   send:   '有一条消息，仍然是未送达。',
-  delete: '这次，是她自己删的。'
+  delete: '这次，是她自己删的。',
+  // 把那张 11/01 的票摊在二叔面前，等于把它交了出去。案子结了，票没了
+  bus:    '那张 11/01 的票，后来没人再提起。'
+};
+
+/* 分支结局：同一套证据，收尾多一段话。
+   只在「出示了 11/01 那张票」时出现——这条线不改变结论，只改变代价 */
+const BRANCH_NOTE = {
+  bus: '你把票摆在了桌上。二叔看了一眼发车时间，什么也没说。<br>'
+     + '但他记住了那个时间。11 月 1 日，早上八点四十，临川。'
 };
 
 function renderTruth(keepScroll) {
@@ -1382,16 +1628,18 @@ function renderTruth(keepScroll) {
     <div class="score">
       <div class="n">${S.solved}<small>/${D.trial.length}</small></div>
       <div class="l">举证成功</div>
-      <div class="r">${S.solved === D.trial.length ? '三段口供，全部击碎。' : '还有口供没被击碎。'}</div>
-      <div class="readlog">三段口供 · <b>已读</b>　　一条消息 · <b>未送达</b></div>
+      <div class="r">${S.solved === D.trial.length ? (D.truth.allDown || '三段口供，全部击碎。') : (D.truth.someLeft || '还有口供没被击碎。')}</div>
+      <div class="readlog">${D.truth.readlog || '三段口供 · <b>已读</b>　　一条消息 · <b>未送达</b>'}</div>
       ${S.plays > 0 ? `<div class="readlog">第 <b>${S.plays + 1}</b> 轮调查</div>` : ''}
     </div>
     <div class="truth"><h3>${D.truth.title}</h3>${paras}</div>
     ${draft}
-    <div class="epi">${D.truth.epilogue}${ENDING_TAIL[ended] || ''}</div>
-    <div class="receipt"><b>回执已发出</b>　→ 138 4471 0620<br>城东六楼 · 无异常　目标 11/01 08:40 离城　请于临川站接人</div>
+    ${S.recap && BRANCH_NOTE[S.recap] && D.caseId === 'case_001' ? `<div class="branch">${BRANCH_NOTE[S.recap]}</div>` : ''}
+    <div class="epi">${D.truth.epilogue}${ENDING_TAIL[S.recap && D.caseId === 'case_001' ? S.recap : ended] || ''}</div>
+    ${D.truth.receipt ? `<div class="receipt">${D.truth.receipt}</div>` : ''}
     <div class="disclaim">本故事纯属虚构。人物、地点、事件均无原型，与任何真实案件、真实人物无关。</div>
     <button class="again" id="againBtn">重新调查</button>
+    ${CASES.length > 1 ? '<button class="again" id="nextCaseBtn" style="margin-top:9px;">换个案卷</button>' : ''}
     <div style="height:20px"></div>`;
 
   if (!ended) {
@@ -1408,13 +1656,17 @@ function renderTruth(keepScroll) {
     });
   }
 
+  // 走完草稿箱那一步才算结案，记进跨案件进度，列表上打「已结案」
+  if (ended) markSolved(D.caseId);
+  if ($('nextCaseBtn')) $('nextCaseBtn').addEventListener('click', goCases);
+
   $('againBtn').addEventListener('click', () => {
     // 保留两样东西：看过哪些照片（相册里的 ✓ 不该被抹掉，那是玩家翻过的痕迹）、
     // 以及通关次数。其余是这个案子本身的进度，重开就该清零
     const keepSeen = { ...S.seen };
     S = { unlocked: true, vaultOpen: false, tries: 0, read: {}, seen: keepSeen, viewed: {},
           round: 0, picked: [], solved: 0, wrongTries: 0,
-          foundJing: false, recentSeen: false, ending: '',
+          foundHidden: false, recentSeen: false, ending: '',
           plays: (S.plays || 0) + 1 };
     vaultTries = 0;
     if ($('searchIn')) $('searchIn').value = '';
@@ -1442,13 +1694,111 @@ function renderAll() {
   if (S.round < D.trial.length) renderTrial();
 }
 
-$('lockDate').textContent = D.lockScreen.dateLabel;
-renderAll();
-// 输错过几次也存了档：刷新回来要接着给提示，不能让玩家从零再试一遍
-if (!S.unlocked) showLockHint();
+/* =========================================================
+   案件列表 / 切换
+   ========================================================= */
+// 锁屏上那两块（回忆卡 + 未读通知）也跟着案件换
+function paintLock() {
+  const L = D.lock || {};
+  $('lockDate').textContent = D.lockScreen.dateLabel;
+  if (L.img) $('lockImg').src = L.img;
+  $('lockCap').textContent = L.cap || '';
+  $('lockFrom').textContent = L.notiFrom || '';
+  $('lockNoti').textContent = L.noti || '';
+}
 
-stack = S.unlocked ? ['chatlist'] : ['lock'];
-renderStack();
+function renderCases() {
+  const prog = loadProg();
+  $('caseList').innerHTML = CASES.map((c, i) => {
+    const done = prog[c.caseId];
+    return `<div class="case-card" data-case="${c.caseId}">
+      <div class="cid">${c.caseId.replace('case_', 'CASE ')}　·　${c.appName}</div>
+      <div class="ct">${c.title}</div>
+      <div class="cd">${c.blurb || ''}</div>
+      ${done ? '<span class="done">已结案</span>' : ''}
+    </div>`;
+  }).join('');
+  $('caseList').querySelectorAll('.case-card').forEach(el => {
+    el.addEventListener('click', () => enterCase(el.dataset.case));
+  });
+}
+
+// 换案：改 D、读这一案自己的存档、重画锁屏和四个板块
+function enterCase(id) {
+  const c = CASES.find(x => x.caseId === id);
+  if (!c) return;
+  D = c;
+  try { localStorage.setItem(LAST_KEY, c.caseId); } catch (e) {}
+  loadState();
+  buf = ''; renderDots();
+  vaultTries = 0;
+  if ($('searchIn')) $('searchIn').value = '';
+  $('lockHint').disabled = false;
+  $('lockHint').classList.remove('show');
+  paintLock();
+  renderAll();
+  showLockHint();
+  stack = S.unlocked ? ['chatlist'] : ['lock'];
+  renderStack();
+}
+
+// 回到案件列表（结局页 / 锁屏右上角都能进）
+function goCases() {
+  renderCases();
+  stack = ['cases'];
+  renderStack();
+}
+
+
+// 「案卷」入口：给每个顶栏最左边塞一个，点了回案件列表。
+// 用运行时插入而不是改 HTML 模板，避免在 5 个 topbar 里重复写同一个按钮
+function mountCaseSwitch() {
+  document.querySelectorAll('.topbar').forEach(tb => {
+    if (tb.querySelector('.case-switch')) return;
+    const btn = document.createElement('div');
+    btn.className = 'case-switch';
+    btn.textContent = '案卷';
+    btn.addEventListener('click', goCases);
+    const sp = tb.querySelector('.sp');
+    if (sp) sp.replaceWith(btn); else tb.insertBefore(btn, tb.firstChild);
+  });
+  document.body.classList.toggle('multi-case', CASES.length > 1);
+}
+
+/* 首屏：上次玩到一半的案子自动接上（已解锁就直接回去），
+   否则给案件列表；只有一个案子时直接进那一案 */
+let lastId = null;
+try { lastId = localStorage.getItem(LAST_KEY); } catch (e) {}
+const lastCase = CASES.find(c => c.caseId === lastId);
+
+if (CASES.length > 1 && lastCase) {
+  D = lastCase;
+  loadState();
+  paintLock();
+  renderAll();
+  $('lockHint').disabled = false;
+  $('lockHint').classList.remove('show');
+  if (!S.unlocked) showLockHint();
+  // 没解锁过就停在锁屏，解锁过就直接回到上次翻到的地方
+  stack = S.unlocked ? ['chatlist'] : ['lock'];
+  renderStack();
+} else if (CASES.length > 1) {
+  renderCases();
+  stack = ['cases'];
+  paintLock();
+  renderAll();
+  renderStack();
+} else {
+  loadState();
+  paintLock();
+  renderAll();
+  if (!S.unlocked) showLockHint();
+  stack = S.unlocked ? ['chatlist'] : ['lock'];
+  renderStack();
+}
+
+mountCaseSwitch();
+$('lockSwitch').addEventListener('click', goCases);
 </script>
 </body>
 </html>
