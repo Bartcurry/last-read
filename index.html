@@ -6,6 +6,10 @@
 <title>最后一条已读</title>
 <meta name="theme-color" content="#080B0F">
 <meta name="description" content="解锁一部陌生人的手机。翻聊天、相册、便签和水电账单——0.8 吨水，只够一个人用。手机 OS 拟真悬疑推理。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="最后一条已读">
+<meta property="og:description" content="解锁一部陌生人的手机。没有凶手，没有尸体。只有一个人被删掉了。">
+<meta property="og:image" content="store/promo_1920x1080.png">
 <link rel="preload" as="image" href="assets/photos/dog.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111A26'/%3E%3Cpath d='M8 11h13a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-4 3v-3H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z' fill='none' stroke='%23F2F5F9' stroke-width='1.7' stroke-linejoin='round'/%3E%3Ccircle cx='24.5' cy='9.5' r='4.2' fill='%23E0453C'/%3E%3C/svg%3E">
 <style>
@@ -20,11 +24,12 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
   body{
     background:#080B0F; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;
-    color:var(--ink); display:flex; align-items:center; justify-content:center;
-    min-height:100vh; min-height:100dvh; overflow:hidden;
+    color:var(--ink); display:flex; min-height:100vh; min-height:100dvh;
+    overflow:auto; padding:20px;
   }
+  /* margin:auto 而不是 flex 居中：窗口比手机矮时不会把顶部裁掉，而是整页可滚 */
   .phone{
-    position:relative; width:390px; height:844px; background:#1B222B;
+    position:relative; width:390px; height:844px; background:#1B222B; margin:auto; flex:0 0 auto;
     border-radius:50px; padding:9px; box-shadow:0 20px 80px rgba(0,0,0,.9), 0 0 0 1px #2C3641;
   }
   .screen{position:relative; width:100%; height:100%; background:var(--bg); border-radius:42px; overflow:hidden;}
@@ -32,9 +37,10 @@
     position:absolute; top:8px; left:50%; transform:translateX(-50%);
     width:110px; height:24px; background:#000; border-radius:0 0 14px 14px; z-index:99;
   }
-  @media(max-width:520px),(max-height:900px){
-    body{display:block;}
-    .phone{width:100vw; height:100vh; height:100dvh; border-radius:0; padding:0; box-shadow:none;}
+  /* 只有窄屏才铺满：之前用 (max-height:900px) 或条件，笔记本一开就丢手机壳、UI 拉成整屏 */
+  @media (max-width:520px){
+    body{display:block; padding:0; overflow:hidden;}
+    .phone{width:100vw; height:100vh; height:100dvh; border-radius:0; padding:0; box-shadow:none; margin:0;}
     .screen{border-radius:0;} .notch{display:none;}
   }
 
@@ -97,11 +103,13 @@
   .lock-tip{margin-top:12px; color:rgba(255,255,255,.55); font-size:12px; text-align:center; padding:0 30px; line-height:1.5;}
   .lock-tip.warn{color:#F0B26B;}
   .keypad{
-    display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:74%;
+    display:grid; grid-template-columns:repeat(3,60px); justify-content:center;
+    column-gap:26px; row-gap:12px;
     margin-top:auto; margin-bottom:calc(24px + var(--safe-b));
   }
+  /* 固定 60×60：之前只有 height，宽度跟着栅格走，屏一宽就变成椭圆 */
   .key-num{
-    height:60px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff;
+    width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff;
     display:flex; align-items:center; justify-content:center;
     font-size:23px; font-weight:300; cursor:pointer; user-select:none;
   }
@@ -648,7 +656,8 @@ const CASE = {
     { id: 'ev_tape',    src: '相册', title: '0524 窗框贴两圈胶带', body: '包装只剩「…音棉」' },
     { id: 'ev_cord',    src: '相册', title: '0527 门缝下的黑线', body: '通到墙角插座' },
     { id: 'ev_old',     src: '相册', title: '0402 合影背面', body: '「致我最好的朋友 林静」' },
-    { id: 'ev_ticket',  src: '相册', title: '0542 两张票差半个月', body: '11/01 与 11/15，陈* 林*' },
+    // 锁在私密相册里的东西，没输密码不能出现在证据池里（否则直接剧透结局）
+    { id: 'ev_ticket',  src: '相册', lock: 'vault', title: '0542 两张票差半个月', body: '11/01 与 11/15，陈* 林*' },
     { id: 'ev_jing',    src: '会话', title: '林静：三条未送达', body: '「你到哪了？先别上车」' },
     { id: 'ev_landlord',src: '会话', title: '王哥：转租、押金不要、月底搬', body: '「转到她名下」' }
   ],
@@ -660,7 +669,7 @@ const CASE = {
       say: '我和小林一起住。她每天洗漱、做饭，作息很正常。',
       ask: '出示两份证据，指出这句话和事实的矛盾。',
       need: ['ev_water', 'ev_takeout'],
-      good: '0.8 吨水，连一个人正常洗漱做饭都不够。23 天，23 份单人餐。这屋里只有一个人在生活。',
+      good: '0.8 吨水，是根本不开火的人才用得出来的量。她说「每天做饭」。23 天，23 份单人份外卖，从来没有第二份。这屋里只住着一个人。',
       next: '陈姐 · 第二次口供',
       nextSay: '……好。我们不是一起住。'
     },
@@ -689,9 +698,9 @@ const CASE = {
     paragraphs: [
       '这屋里只住着一个人。',
       '那个人不是陈姐。',
-      '一个月前，她把房子转到了小林名下，押金没要。自己搬去了城西，六楼，没电梯，没监控。',
+      '房子已经转到小林名下，押金没要。她自己搬去了城西，六楼，没电梯，没监控。剩下的东西，月底清完。',
       '她每天回来一趟。放一份外卖，把客厅的灯定时打开。让楼下的人以为家里有大人。',
-      '相机和手表卖了。八万，她给了一半。',
+      '相机和手表卖了，一万一千。八万的账，她先给了两万。',
       '两张票。11 月 1 日，小林。11 月 15 日，她自己。',
       '五年前，她也没能拦住小林的姐姐。二叔拿这件事，要了五年。',
       '陈姐没有解释过。',
@@ -800,6 +809,13 @@ $('keypad').addEventListener('click', e => {
   onKey(el.dataset.k);
 });
 
+// 桌面端直接用键盘输 4 位数字（之前只能鼠标点）
+document.addEventListener('keydown', e => {
+  if (stack[stack.length - 1] !== 'lock') return;
+  if (/^[0-9]$/.test(e.key)) onKey(e.key);
+  else if (e.key === 'Backspace') { e.preventDefault(); onKey('del'); }
+});
+
 /* =========================================================
    会话
    ========================================================= */
@@ -861,7 +877,7 @@ function openChat(id) {
 
   renderList();
   push('chat');
-  $('chatBox').scrollTop = 0;
+  $('chatBox').scrollTop = $('chatBox').scrollHeight;   // 手机聊天默认停在最后一条
 }
 
 $('chatBack').addEventListener('click', back);
@@ -953,7 +969,7 @@ $('vaultOk').addEventListener('click', () => {
   vaultTries++;
   $('vaultErr').textContent =
     v.length < 4 ? '要 4 位数字。'
-    : vaultTries >= 2 ? '不对。跟那张票有关。'
+    : vaultTries >= 2 ? '不对。去信息里翻翻那张车票，看它几点发车。'
     : '不对。';
 });
 $('vaultPwd').addEventListener('keydown', e => { if (e.key === 'Enter') $('vaultOk').click(); });
@@ -985,13 +1001,25 @@ function renderSms() {
    结案：矛盾举证
    ========================================================= */
 function poolList() {
-  // 只有翻过的板块，证据才可出示
-  return D.evidence.filter(e => S.viewed[e.src]);
+  // 只有翻过的板块，证据才可出示；带 lock 的证据还要额外解锁（如私密相册）
+  return D.evidence.filter(e =>
+    S.viewed[e.src] && !(e.lock === 'vault' && !S.vaultOpen)
+  );
 }
 
-function renderTrial() {
+// 每轮给一句方向不同的提示，不用同一句数字提示套三轮
+const WRONG_HINT = [
+  '这两条对不上。再想想：这句话里哪个词是可以用数字反驳的？',
+  '这两条对不上。她说"这房子还是我在住"——那人到底搬到哪去了？',
+  '这两条对不上。五年前那天夜里，谁没能拦住谁？'
+];
+
+function renderTrial(keepScroll) {
   const idx = S.round;
   if (idx >= D.trial.length) { renderTruth(); return; }
+
+  // 选证据会整块重渲染，不还原滚动位置的话每点一次都跳回顶部
+  const prevScroll = keepScroll && $('poolBox') ? $('poolBox').scrollTop : 0;
 
   const t = D.trial[idx];
   const pool = poolList();
@@ -1030,9 +1058,11 @@ function renderTrial() {
       const i = S.picked.indexOf(id);
       if (i >= 0) S.picked.splice(i, 1);
       else if (S.picked.length < 2) S.picked.push(id);
-      save(); renderTrial();
+      save(); renderTrial(true);
     });
   });
+
+  if ($('poolBox')) $('poolBox').scrollTop = prevScroll;
 
   const btn = $('submitBtn');
   if (btn && picked.length === 2) btn.addEventListener('click', submitProof);
@@ -1048,6 +1078,7 @@ function submitProof() {
     S.solved++;
     S.round++;
     S.picked = [];
+    S.wrongTries = 0;   // 提示按轮重置，否则第三轮还在给数字提示
     save();
     if (S.round >= D.trial.length) { renderTruth(); return; }
     // 显示口供被击碎 + 下一段
@@ -1064,7 +1095,7 @@ function submitProof() {
       </div>
       <div style="height:4px"></div>`;
     $('trialFoot').innerHTML = `<button class="submit" id="nextBtn">继续</button>`;
-    $('nextBtn').addEventListener('click', renderTrial);
+    $('nextBtn').addEventListener('click', () => renderTrial());
     $('trialBox').scrollTop = 0;
     return;
   }
@@ -1073,7 +1104,7 @@ function submitProof() {
   save();
   fb.className = 'fb bad on';
   fb.textContent = S.wrongTries >= 3
-    ? '这两条对不上。再想想：这句话里哪个词是可以用数字反驳的？'
+    ? WRONG_HINT[Math.min(S.round, WRONG_HINT.length - 1)]
     : '这两条不构成矛盾。';
 }
 
@@ -1101,7 +1132,8 @@ function renderTruth() {
     save(); renderAll(); goTab('chatlist');
   });
 
-  push('result');
+  // 不能只 push：调用方（tab 点击）随后会用 goTab 重置栈，结果页会被顶掉
+  goTab('result');
   $('resultBox').scrollTop = 0;
   $('trialFoot').innerHTML = '';
 }
@@ -1112,8 +1144,8 @@ function renderTruth() {
 $('tabbar').addEventListener('click', e => {
   const b = e.target.closest('.tab-btn');
   if (!b) return;
-  if (b.dataset.tab === 'verdict') { renderTrial(); }
-  goTab(b.dataset.tab);
+  goTab(b.dataset.tab);                                   // 先把栈摆对，再渲染
+  if (b.dataset.tab === 'verdict') renderTrial();          // 通关后进入会直接落到真相页
 });
 
 function renderAll() {
