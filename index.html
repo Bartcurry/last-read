@@ -6,11 +6,23 @@
 <title>最后一条已读</title>
 <meta name="theme-color" content="#080B0F">
 <meta name="description" content="解锁一部陌生人的手机。翻聊天、相册、便签和水电账单——0.8 吨水，只够一个人用。手机 OS 拟真悬疑推理。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="最后一条已读">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="最后一条已读">
+<meta property="og:url" content="https://bartcurry.github.io/last-read/">
 <meta property="og:title" content="最后一条已读">
 <meta property="og:description" content="解锁一部陌生人的手机。没有凶手，没有尸体。只有一个人被删掉了。">
-<meta property="og:image" content="store/promo_1920x1080.png">
-<link rel="preload" as="image" href="assets/photos/dog.jpg">
+<meta property="og:image" content="https://bartcurry.github.io/last-read/store/promo_1920x1080.png">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="最后一条已读 — 手机 OS 拟真悬疑推理">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" as="image" href="assets/photos/dog.webp" type="image/webp">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111A26'/%3E%3Cpath d='M8 11h13a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-4 3v-3H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z' fill='none' stroke='%23F2F5F9' stroke-width='1.7' stroke-linejoin='round'/%3E%3Ccircle cx='24.5' cy='9.5' r='4.2' fill='%23E0453C'/%3E%3C/svg%3E">
 <style>
   :root{
@@ -59,6 +71,8 @@
     width:100%; box-sizing:border-box;
   }
   .sb.light{color:#fff;}
+  /* 添加到主屏后由系统绘制状态栏，隐藏拟真的那一条，否则会出现两条状态栏 */
+  @media (display-mode:standalone){ .sb{display:none;} }
   .topbar{
     display:flex; align-items:center; gap:4px; padding:9px 12px;
     background:rgba(247,248,250,.97); border-bottom:.5px solid var(--line);
@@ -74,7 +88,7 @@
   /* 锁屏 */
   #p-lock{background:#090E17; z-index:40;}
   .lock-wall{position:absolute; inset:0;
-    background:url('assets/photos/dog.jpg') center 42%/cover no-repeat, #0B111A;}
+    background:url('assets/photos/dog.webp') center 42%/cover no-repeat, #0B111A;}
   .lock-wall::after{content:''; position:absolute; inset:0;
     background:linear-gradient(180deg,
       rgba(7,11,17,.74) 0%, rgba(7,11,17,.44) 18%, rgba(7,11,17,.30) 40%,
@@ -443,7 +457,7 @@
           <div class="date" id="lockDate">10月28日 星期三</div>
         </div>
         <div class="lock-card">
-          <div class="lock-card-img"><img src="assets/photos/dog.jpg" alt="" decoding="async"></div>
+          <div class="lock-card-img"><img src="assets/photos/dog.webp" alt="" decoding="async"></div>
           <div>
             <div style="font-size:10px;opacity:.7;">相册回忆</div>
             <div style="font-size:13px;font-weight:600;">小乖　2018.06.12</div>
@@ -599,11 +613,11 @@ const CASE = {
   ],
 
   photos: [
-    { id: 'p_dog',   variant: 'dog',   src: 'assets/photos/dog.jpg',   title: 'IMG_0431', note: '一只金毛。项圈铭牌上刻着 2018.06.12。' },
-    { id: 'p_towel', variant: 'towel', src: 'assets/photos/towel.jpg', title: 'IMG_0523', note: '门缝里塞着一条厚毛巾，叠了两折。' },
-    { id: 'p_tape',  variant: 'tape',  src: 'assets/photos/tape.jpg',  title: 'IMG_0524', note: '窗框四周贴了两圈胶带。包装撕掉一半，只剩「…音棉」三个字。' },
-    { id: 'p_cord',  variant: 'cord',  src: 'assets/photos/cord.jpg',  title: 'IMG_0527', note: '门缝底下有一根细黑线，一直通到墙角的插座。' },
-    { id: 'p_old',   docKind: 'note',  src: 'assets/photos/old.jpg',   title: 'IMG_0402', note: '一张五年前的合影，两个女孩。背面有一行钢笔字。',
+    { id: 'p_dog',   variant: 'dog',   src: 'assets/photos/dog.webp',   title: 'IMG_0431', note: '一只金毛。项圈铭牌上刻着 2018.06.12。' },
+    { id: 'p_towel', variant: 'towel', src: 'assets/photos/towel.webp', title: 'IMG_0523', note: '门缝里塞着一条厚毛巾，叠了两折。' },
+    { id: 'p_tape',  variant: 'tape',  src: 'assets/photos/tape.webp',  title: 'IMG_0524', note: '窗框四周贴了两圈胶带。包装撕掉一半，只剩「…音棉」三个字。' },
+    { id: 'p_cord',  variant: 'cord',  src: 'assets/photos/cord.webp',  title: 'IMG_0527', note: '门缝底下有一根细黑线，一直通到墙角的插座。' },
+    { id: 'p_old',   docKind: 'note',  src: 'assets/photos/old.webp',   title: 'IMG_0402', note: '一张五年前的合影，两个女孩。背面有一行钢笔字。',
       noteText: ['致我最好的朋友', '林静'], sign: '—— 陈' }
   ],
 

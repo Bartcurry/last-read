@@ -1,5 +1,29 @@
 # 更新日志
 
+## v0.9 — 2026-10-28
+
+上线准备：仓库转公开 + GitHub Pages 托管 + PWA。**游戏逻辑与文案零改动**，只动宿主环境。
+
+### 新增
+
+- **PWA 支持**。`manifest.webmanifest` + `assets/icons/`（192/512/180，由 `store/icon_1024.png` 缩放生成）。
+  `display: standalone`，可添加到主屏幕全屏运行。
+  独立窗口下用 `@media (display-mode:standalone)` 隐藏拟真状态栏（`.sb`），否则系统状态栏和游戏里那条「09:41」会同时出现。
+- **分享卡片**。补 `og:url` / `og:site_name` / `og:image:width·height·alt` / `twitter:card`。
+  `og:image` 从相对路径改成绝对地址——爬虫不解析相对路径，之前分享出去是空白卡片。
+- **`.nojekyll`**，跳过多余的 Jekyll 构建。
+
+### 变更
+
+- **5 张照片转 WebP**（1080×1350，quality 82）。单张 234KB → 155KB，合计 1.16MB → 760KB，视觉无差异。
+  原 JPG 保留在 `v0.8` tag 中，`git show v0.8:assets/photos/dog.jpg` 可取回。**注意：这是不可逆的重编码**，若要改回需从 tag 恢复。
+- `index.html` 中 8 处 `assets/photos/*.jpg` 引用全部切到 `.webp`。
+
+### 已知取舍
+
+- WebP 只压掉 34%，因为照片本身是刻意加噪点的胶片质感，颗粒不可压缩。要更小只能降分辨率或减噪，会伤美术，没做。
+- `store/` 里 8MB 的宣传图/截图仍按原样托管，未做优化。
+
 ## v0.8 — 2026-10-28
 
 一轮完整代码审查后的修复版本。审查方式：Chrome 无头模式注入脚本，模拟玩家全流程跑通（解锁 → 翻板块 → 解私密相册 → 三轮举证 → 真相 → 重开）。

@@ -5,6 +5,7 @@
 - 案件编号：`case_001 · 完美合租人`
 - 形态：一个 `index.html`（内联 CSS + JS，无构建、无依赖、无后端）
 - 存档：浏览器 `localStorage`（带 `SCHEMA` 版本号，内容改动后老档自动作废）
+- 在线试玩：<https://bartcurry.github.io/last-read/>
 
 ## 玩法
 
@@ -21,8 +22,11 @@
 ```
 .
 ├── index.html              游戏本体（唯一入口）
-├── assets/photos/          5 张正片照片 1080×1350
-└── store/                  TapTap 后台素材（图标/截图/宣传图/说明）
+├── manifest.webmanifest    PWA：可「添加到主屏幕」全屏运行
+├── assets/photos/          5 张正片照片 1080×1350（WebP）
+├── assets/icons/           PWA 图标 192 / 512 / 180
+├── store/                  TapTap 后台素材（图标/截图/宣传图/说明）
+└── .nojekyll               跳过 GitHub Pages 的 Jekyll 处理
 ```
 
 ## 本地运行
@@ -32,6 +36,11 @@
 ```bash
 python -m http.server 8000
 ```
+
+## 部署
+
+托管在 GitHub Pages，来源为 `main` 分支根目录（`/`），推送即自动发布。
+`index.html` 里的 `og:image` / `og:url` 用的是绝对地址，换域名时需要同步修改。
 
 ## 版本
 
