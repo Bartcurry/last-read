@@ -596,8 +596,8 @@
           <div>最近删除</div><div class="st" id="recentSt">2 项</div>
         </div>
         <div class="recent-panel" id="recentPanel">
-          <div class="rp-row"><span>IMG_0525</span><span class="rp-date">10/27 23:14</span></div>
-          <div class="rp-row"><span>IMG_0526</span><span class="rp-date">10/27 23:14</span></div>
+          <div class="rp-row"><span>IMG_0519</span><span class="rp-date">10/27 23:14</span></div>
+          <div class="rp-row"><span>IMG_0520</span><span class="rp-date">10/27 23:14</span></div>
           <div class="rp-sys">同一分钟删除 · 已清除，不可恢复</div>
         </div>
         <div class="trash-bar" id="trashBar">
@@ -765,23 +765,19 @@ const CASE = {
   ],
 
   /* ---------- 证据池：只列可用于举证的条目 ---------- */
+  /* 只收能直接顶掉某句口供的条目。氛围与伏笔（卖出镜头、定时插座、路由器、
+     便签「灯」「隔壁」、窗框胶带、门缝黑线）故意不进池：它们服务于结尾，跟三轮
+     口供没有逻辑关系，放进池里只会让"必须选 2 份"变成穷举 */
   evidence: [
     { id: 'ev_water',   src: '信息', title: '本月用水 0.8 吨', body: '上月 3.2 吨，下降 75%' },
     { id: 'ev_power',   src: '信息', title: '夜间用电仅占 4%', body: '本月 41 度，00:00—06:00' },
     { id: 'ev_bus',     src: '信息', title: '11/01 临川 08:40 出票', body: '单程票一张' },
     { id: 'ev_takeout', src: '记录', title: '23 天单人份外卖', body: '无第二份，每单都加香菜' },
-    { id: 'ev_sell',    src: '记录', title: '卖出镜头与手表', body: '¥4200 + ¥6800' },
-    { id: 'ev_buy',     src: '记录', title: '买入定时插座与旧手机', body: '¥39 + ¥180' },
-    { id: 'ev_router',  src: '记录', title: '凌晨 01:12 旧设备上线', body: '每天约 40 分钟，MAC 尾号 3C' },
     { id: 'ev_route',   src: '记录', title: '便签「退路」', body: '送她上车之后这边退房，城西那个单间住到月中' },
-    { id: 'ev_lamp',    src: '记录', title: '便签「灯」', body: '客厅灯 23:00 开，01:00 关' },
-    { id: 'ev_nb',      src: '记录', title: '便签「隔壁」', body: '上夜班，凌晨回来，在走廊抽烟' },
-    { id: 'ev_towel',   src: '相册', title: '0523 门缝塞着毛巾', body: '叠了两折，从里面塞的' },
-    { id: 'ev_tape',    src: '相册', title: '0524 窗框贴两圈胶带', body: '包装只剩「…音棉」' },
-    { id: 'ev_cord',    src: '相册', title: '0527 门缝下的黑线', body: '通到墙角插座' },
+    { id: 'ev_towel',   src: '相册', title: '0523 门缝塞着毛巾', body: '叠了两折，朝走廊那面是干净的' },
 // 0402 一开始就在相册里、字也看得见，但"林静"这个名字要等你搜到她才有意义
     { id: 'ev_old',     src: '相册', title: '0402 合影背面', body: '「致我最好的朋友 林静」' },
-    { id: 'ev_gap',     src: '相册', lock: 'recent', title: '编号少了 0525 / 0526', body: '0523、0524、0527，中间空了两个' },
+    { id: 'ev_gap',     src: '相册', lock: 'recent', title: '编号少了 0525 / 0526', body: '0523、0524、0527，中间空了两个（最近删除里只有 0519、0520）' },
     // 锁在私密相册里的东西，没输密码不能出现在证据池里（否则直接剧透结局）
     { id: 'ev_ticket',  src: '相册', lock: 'vault', title: '0542 两张票差半个月', body: '11/01 林*　11/15 陈*' },
     // 林静的会话不在列表里，搜不到她就拿不到这条
@@ -796,7 +792,7 @@ const CASE = {
       say: '我和小林一起住。她每天洗漱、做饭，作息很正常。',
       ask: '出示两份证据，指出这句话和事实的矛盾。',
       need: ['ev_water', 'ev_takeout'],
-      good: '0.8 吨水，是根本不开火的人才用得出来的量。她说「每天做饭」。可二十三天的外卖，二十三份，从来只有一份——而且每一份都加了香菜，你自己的便签里写着，你一口都不吃。吃饭的人不是你。这屋里只住着一个人。',
+      good: '0.8 吨水，一个月。做饭、洗碗、洗澡，一个人省着用都不止这个数——上个月是 3.2 吨。她说两个人住，还「每天做饭」。可二十三天的外卖，二十三份，从来只有一份，每一份都加了香菜：你自己的便签里写着，你一口都不吃。一份外卖喂不饱两个人，0.8 吨水也洗不了两个人的碗。这屋里只住着一个人。',
       next: '陈姐 · 第二次口供',
       nextSay: '……好。我们不是一起住。'
     },
@@ -842,7 +838,7 @@ const CASE = {
    ========================================================= */
 /* 存档带 schema 版本：内容改动后老存档必须作废，否则 viewed 会解锁错证据 */
 const KEY = 'case_001';
-const SCHEMA = 8;
+const SCHEMA = 9;
 let S = {
   unlocked: false, vaultOpen: false, tries: 0,
   read: {}, seen: {}, viewed: {},
@@ -952,7 +948,9 @@ function renderList() {
   const q = $('searchIn') ? $('searchIn').value.trim() : '';
 
   // 已注销的会话不在列表里，只能按名字搜出来——这是"她得被找到"而不是"被递给"
-  const hit = t => t.hidden && !S.foundJing ? (!!q && t.name.includes(q))
+  // 能不能看见只由 hidden / 当前搜索词决定，跟 foundJing 无关。
+  // 之前写成 !S.foundJing 判断，导致搜过一次之后她就永久留在列表里，刷新也在
+  const hit = t => t.hidden && !q ? false
     : (!q ? true : (t.name.includes(q) || t.messages.some(m => m.t && m.t.includes(q))));
 
   if (!S.foundJing && q && D.threads.some(t => t.hidden && t.name.includes(q))) {
