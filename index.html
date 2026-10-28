@@ -327,9 +327,11 @@
     align-items:center; justify-content:center; text-align:center; min-height:220px;
   }
   .doc-note .sc{
-    font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:21px; line-height:2;
-    color:#3A3226; letter-spacing:.06em;
+    font-family:"Kaiti SC","STKaiti","KaiTi",serif; font-size:17px; line-height:2.1;
+    color:#3A3226; letter-spacing:.03em; white-space:nowrap;
   }
+  /* 手机窄屏再收一档，保证"02:14 实际停电 签字 周"这种长行不折 */
+  @media (max-width:400px){ .doc-note .sc{font-size:15.5px; letter-spacing:0;} }
   .doc-note .sg{
     margin-top:18px; font-family:"Kaiti SC","STKaiti","KaiTi",serif;
     font-size:16px; color:#5A4E3C; letter-spacing:.08em;
@@ -585,6 +587,13 @@
     background:#0D141C; border-radius:0 10px 10px 0;
     font-size:13.5px; line-height:1.95; color:#9FB4C8;
   }
+
+  .cases-stat{
+    margin-top:14px; display:inline-flex; align-items:center; gap:9px;
+    font-size:11px; letter-spacing:.06em; color:var(--ink-2);
+    background:#fff; border:.5px solid var(--line); border-radius:999px; padding:6px 13px;
+  }
+  .cases-stat b{color:var(--brand); font-weight:650;}
 </style>
 </head>
 <body>
@@ -598,6 +607,7 @@
         <div class="k">未命名档案室</div>
         <h1>选一个案子</h1>
         <p>一部手机，一个人，几句说法。<br>翻完，再决定信谁。</p>
+        <div class="cases-stat" id="casesStat"></div>
       </div>
       <div class="case-list" id="caseList"></div>
       <div class="cases-ft">本故事纯属虚构。人物、地点、事件均无原型。</div>
@@ -1044,11 +1054,144 @@ const CASE_002 = {
   }
 };
 
+
+/* =========================================================
+   case_003 · 三分钟
+   ---------------------------------------------------------
+   完全不依赖照片：所有"相册"条目都是文本型证物（docKind: 'note'）。
+   前两个案子打的是"数据反常"，这一案打的是"时间对不上"——
+   同样的证据，换个读法就是另一个结论。
+   ========================================================= */
+const CASE_003 = {
+  caseId: 'case_003',
+  title: '三分钟',
+  appName: '夜班台',
+  blurb: '大楼在 02:10 就该停电，02:14 才拉闸。那四分钟里，有人在等一个人走开。',
+  lockScreen: { pin: '0223', dateLabel: '4月23日 星期四',
+    hint: { where: '提示：锁屏那张电梯检修单，落款时间。' } },
+  vault: { pin: '1110' },
+  lock: {
+    img: 'assets/photos/old.webp',
+    cap: '检修单　2026.04.23',
+    notiFrom: '119（消防）',
+    noti: 'B 座三层的报警主机又离线了。这周第三次。'
+  },
+
+  threads: [
+    { id: 'm_du', name: '杜工（机电）', initial: '杜', bg: '#5C6B7A', unread: 2,
+      messages: [
+        { from: 'them', t: '昨晚断电那七分钟，谁签的字？', time: '今天 07:02' },
+        { from: 'me',   t: '我签的。检修计划提前了。', time: '今天 07:10' },
+        { from: 'them', t: '计划上写的是 02:10，你 02:14 才拉闸。', time: '今天 07:11' },
+        { from: 'them', t: '这四分钟你在等什么？', time: '今天 07:12' }
+      ] },
+    { id: 'm_bao', name: '保安老陈', initial: '陈', bg: '#7A6A5C', unread: 0,
+      messages: [
+        { from: 'them', t: '三层起火的时候，烟感没响。', time: '今天 02:31' },
+        { from: 'me',   t: '主机离线了，你知道吗？', time: '今天 02:33' },
+        { from: 'them', t: '我知道。我每天都看。', time: '今天 02:35' }
+      ] },
+    { id: 'm_wu', name: '物业吴经理', initial: '吴', bg: '#8C7B6B', unread: 0,
+      hidden: true, goneLabel: '已退群',
+      messages: [
+        { from: 'them', t: '报警主机的事，先不要写进日报。', time: '4月20日 18:20' },
+        { from: 'me',   t: '为什么不写？', time: '4月20日 18:31' },
+        { from: 'them', t: '月底验收。你写了我就要写整改，整改就要停业。', time: '4月20日 18:33' }
+      ] }
+  ],
+
+  photos: [
+    { id: 'r_power', docKind: 'note', title: 'IMG_2201',
+      note: '拍的一张配电房操作票。',
+      noteText: ['操作票　B-03', '02:10　拟停电　签字 吴', '02:14　实际停电　签字 周', '02:21　恢复送电'],
+      sign: '机电班　4月23日' },
+    { id: 'r_log', docKind: 'note', title: 'IMG_2202',
+      note: '一张手抄的巡检表。',
+      noteText: ['三层巡检　4/21　08:40　正常', '三层巡检　4/22　08:41　正常', '三层巡检　4/23　—'],
+      sign: '巡检员　陈' },
+    { id: 'r_old', variant: 'old', src: 'assets/photos/old.webp', title: 'IMG_2160',
+      note: '一张旧照片，背面写过字。' }
+  ],
+
+  vaultPhotos: [
+    { id: 'r_cost', docKind: 'plan', title: 'IMG_2210', note: '一张手写的费用表。',
+      plan: { big: '7', rows: [['停机分钟', '7'], ['按合同计费', '0'], ['实际损失', '约 12 万'], ['已报', '0']] } }
+  ],
+
+  records: [
+    { group: '值班日志', items: [
+      { title: '02:10', time: '计划停电', body: '配电房 B-03，计划停电，操作人 吴。' },
+      { title: '02:14', time: '实际停电', body: '操作人改为 周，晚 4 分钟。' },
+      { title: '02:21', time: '恢复送电', body: '三层烟感未复位，主机离线。', mono: true },
+      { title: '报警主机', time: '4月21日起', body: '离线 3 次，维修单 0 张。', mono: true }
+    ]},
+    { group: '便签', items: [
+      { title: '等', time: '今天 02:08', body: '等老陈巡完三层再拉。他的表停在 08:41。' },
+      { title: '验收', time: '4月20日', body: '月底验收。别在这时候出事。' }
+    ]}
+  ],
+
+  sms: [
+    { from: '【消防】', text: 'B 座三层烟感信号中断，累计 3 次，请于 24 小时内处理。', warn: true },
+    { from: '【物业】', text: '本月设备完好率 100%，验收资料已提交。', warn: false },
+    { from: '119（消防）', text: 'B 座三层的报警主机又离线了。这周第三次。', warn: false }
+  ],
+
+  evidence: [
+    { id: 'rv_late',  src: '相册', title: '2201 操作票：02:10 计划，02:14 实际', body: '晚 4 分钟，签字人换了' },
+    { id: 'rv_wait',  src: '记录', title: '便签「等」', body: '等老陈巡完三层再拉' },
+    { id: 'rv_patrol',src: '相册', title: '2202 巡检表：4/23 空白', body: '21、22 号都有，23 号没有' },
+    { id: 'rv_off',   src: '记录', title: '主机离线 3 次，维修单 0 张', body: '4月21日起' },
+    { id: 'rv_hide',  src: '会话', lock: 'jing', title: '吴经理：先不要写进日报', body: '写了我就要写整改' },
+    { id: 'rv_cost',  src: '相册', lock: 'vault', title: '手写表：损失 12 万，已报 0', body: '停机 7 分钟按合同计费 0' }
+  ],
+
+  trial: [
+    { who: '周工 · 第一次陈述',
+      say: '停电是照计划执行的，02:10 拉闸，02:21 送电，中间没耽误。',
+      ask: '出示两份证据，指出这句话和记录的矛盾。',
+      need: ['rv_late', 'rv_wait'],
+      good: '操作票上写着：计划 02:10，实际 02:14。你晚了四分钟。便签里你自己写了为什么——「等老陈巡完三层再拉」。你不是在等时间，你在等一个人走开。',
+      next: '周工 · 第二次陈述', nextSay: '……我是怕他还在里面。' },
+    { who: '周工 · 第二次陈述',
+      say: '消防报警是正常的，那天只是烟感误报。',
+      ask: '出示两份证据，指出这句话和记录的矛盾。',
+      need: ['rv_off', 'rv_patrol'],
+      good: '主机从 4 月 21 号起离线三次，维修单零张。巡检表 21、22 号都有签字，23 号是空的——那天没人上过三层。烟感没响，不是因为误报，是因为它根本没在工作。',
+      next: '吴经理 · 陈述', nextSay: '……主机是我让先别报修的。' },
+    { who: '吴经理 · 陈述',
+      say: '停机七分钟是正常检修，对公司没有造成损失。',
+      ask: '出示两份证据，指出这句话和事实的矛盾。',
+      need: ['rv_cost', 'rv_hide'],
+      good: '手写表上写着：停机七分钟，按合同计费 0，实际损失约 12 万，已报 0。你在群里说过「写了我就要写整改，整改就要停业」。损失不是没有，是没报。',
+      next: '', nextSay: '' }
+  ],
+
+  truth: {
+    title: '真相',
+    paragraphs: [
+      '那七分钟里，没有人死在火里。',
+      '但三层确实起过火，很小，自己灭了。',
+      '烟感没有响，因为主机离线了三天，维修单一张没开。',
+      '周工知道主机是坏的。所以他等到 02:14——等老陈巡完三层走开，才敢拉闸。拉闸是为了让报警主机重启，不是检修。',
+      '吴经理知道主机是坏的。他压下了报修，为了月底验收的 100%。',
+      '老陈知道主机是坏的。他每天都看，每天都填「正常」，4 月 23 号那天，他干脆没填。',
+      '三个人都知道。三个人都没说。',
+      '火自己灭了，是运气，不是制度。'
+    ],
+    epilogue: '本案移交消防。三个月后复检。',
+    allDown: '三份陈述，全部击穿。',
+    someLeft: '还有陈述没被击穿。',
+    readlog: '三次陈述 · <b>已签</b>　　一张维修单 · <b>未开</b>',
+    receipt: '<b>移交已提交</b>　→ 消防大队<br>B 座三层 · 主机已复位　维修单补开 1 张　验收资料撤回'
+  }
+};
+
 /* =========================================================
    案件注册表
    ========================================================= */
 /* 引擎只认 D，换案子就是换一次 D 的指向。加新案件：写一个同结构对象，塞进这里 */
-const CASES = [CASE_001, CASE_002];
+const CASES = [CASE_001, CASE_002, CASE_003];
 
 // 当前案件。默认第一个；老玩家存档里没有 caseId，默认回 case_001
 const $ = id => document.getElementById(id);
@@ -1709,6 +1852,10 @@ function paintLock() {
 
 function renderCases() {
   const prog = loadProg();
+  const done = CASES.filter(c => prog[c.caseId]).length;
+  if ($('casesStat')) {
+    $('casesStat').innerHTML = `已结案 <b>${done}</b> / ${CASES.length}`;
+  }
   $('caseList').innerHTML = CASES.map((c, i) => {
     const done = prog[c.caseId];
     return `<div class="case-card" data-case="${c.caseId}">
