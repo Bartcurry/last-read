@@ -335,6 +335,9 @@
   .sms-sender{font-size:12.5px; font-weight:650; color:var(--brand); margin-bottom:5px;}
   .sms-text{font-size:13px; color:var(--ink-2); line-height:1.55;}
   .sms-item.warn .sms-sender{color:var(--bad);}
+  /* 自己发出的那条：跟收件箱里的卡片错开位置，不写发件人 */
+  .sms-item.mine{margin-left:26px; background:#E9F0F7;}
+  .sms-item.mine .sms-st{margin-top:6px; font-size:10.5px; letter-spacing:.14em; color:var(--ink-3); text-align:right;}
 
   /* 结案：矛盾举证 */
   .trial{flex:1; overflow-y:auto; padding:14px 14px 14px; min-height:0;}
@@ -643,7 +646,7 @@ const CASE = {
   threads: [
     {
       id: 't_lin', name: '小林', initial: '林', bg: '#C98A63', unread: 2,
-      draft: '别回头。',
+      draft: '再等四天。',
       messages: [
         { from: 'them', t: '陈姐，二叔今天又来了。他在楼下站了半个钟头，抬头看窗户。', time: '昨天 21:04' },
         { from: 'me',   t: '别开窗。灯我给你定时了，十一点自己亮。', time: '昨天 21:06' },
@@ -725,6 +728,9 @@ const CASE = {
     { from: '【电力】', text: '您本月用电 41 度。其中 00:00—06:00 时段占比 4%。', warn: false },
     { from: '【客运中心】', text: '出票成功：11/01 临川，单程，发车时间 08:40。请提前到站取票。', warn: false },
     { from: '【门禁系统】', text: '您绑定的单元门临时密码已更新为 0429，有效期 7 天。', warn: false },
+    { from: '138 4471 0620', text: '临川这边的话带到了。她说那天她在站外等，不用进站。', warn: false },
+    { from: '', mine: true, text: '别跟她提我什么时候走。', warn: false },
+    { from: '138 4471 0620', text: '知道了。', warn: false },
     { from: '二叔（拦截记录）', text: '今天有人在家吗？灯亮着，没人应门。', warn: true }
   ],
 
@@ -1110,9 +1116,10 @@ function renderRecord() {
 
 function renderSms() {
   $('smsList').innerHTML = D.sms.map(s => `
-    <div class="sms-item ${s.warn ? 'warn' : ''}">
-      <div class="sms-sender">${s.from}</div>
+    <div class="sms-item ${s.warn ? 'warn' : ''} ${s.mine ? 'mine' : ''}">
+      ${s.mine ? '' : `<div class="sms-sender">${s.from}</div>`}
       <div class="sms-text">${s.text}</div>
+      ${s.mine ? '<div class="sms-st">已发出</div>' : ''}
     </div>`).join('');
 }
 
@@ -1280,7 +1287,7 @@ function renderTruth(keepScroll) {
     <div class="truth"><h3>${D.truth.title}</h3>${paras}</div>
     ${draft}
     <div class="epi">${D.truth.epilogue}${ENDING_TAIL[ended] || ''}</div>
-    <div class="receipt"><b>回执已发出</b>　城东六楼 · 无异常　目标 11/01 08:40 离城　请于临川站接人</div>
+    <div class="receipt"><b>回执已发出</b>　→ 138 4471 0620<br>城东六楼 · 无异常　目标 11/01 08:40 离城　请于临川站接人</div>
     <div class="disclaim">本故事纯属虚构。人物、地点、事件均无原型，与任何真实案件、真实人物无关。</div>
     <button class="again" id="againBtn">重新调查</button>
     <div style="height:20px"></div>`;
