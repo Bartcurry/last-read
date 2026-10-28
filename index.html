@@ -254,10 +254,6 @@
     margin-top:4px; font-size:11px; color:#9AA5B1;
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; letter-spacing:.02em;
   }
-  .rp-note{
-    margin-top:10px; padding-top:10px; border-top:.5px dashed #DDE2E8;
-    font-size:12px; line-height:1.75; color:#7B8794;
-  }
 
   /* 照片详情 */
   #p-photo{background:#070A0E;}
@@ -563,10 +559,6 @@
           <div class="rp-row"><span>IMG_0525</span><span class="rp-date">11/03 23:14</span></div>
           <div class="rp-row"><span>IMG_0526</span><span class="rp-date">11/03 23:14</span></div>
           <div class="rp-sys">同一分钟删除 · 已清除，不可恢复</div>
-          <div class="rp-note">
-            0523 门缝毛巾、0524 窗框胶带、0527 门缝下的黑线——这三张她一张都没删。<br>
-            只有中间这两个编号，是她自己删的。会话也未必是全的。
-          </div>
         </div>
         <div class="trash-bar" id="trashBar">
           <div>私密相册</div><div class="st" id="trashSt">加密 · 2 张</div>
@@ -1018,13 +1010,18 @@ function docMarkup(p) {
     </div>`;
   }
   // 真图优先：底下永远垫一层色块，图挂了自动露出来
+  // 不用 loading="lazy" / decoding="async"：相册只有 5 张、全是必看素材，
+  // 异步解码会让切进相册的头一帧只看到灰色占位块，图在被删的照片旁边闪一下很出戏
   const ph = `<div class="ph ph-${p.variant || 'photo'}"></div>`;
-  if (p.src) return ph + `<img class="realphoto" src="${p.src}" alt="" loading="lazy" decoding="async">`;
+  if (p.src) return ph + `<img class="realphoto" src="${p.src}" alt="">`;
   return ph;
 }
 
 function renderAlbum() {
-  const list = S.vaultOpen ? [...D.photos, ...D.vaultPhotos] : D.photos;
+  // 按文件编号倒序（最新在前，和系统相册一致）。让 0527 → 0524 的跳号自己露出来，不用文字解释
+  const seq = p => parseInt((String(p.title).match(/(\d+)/) || [0, 0])[1], 10) || 0;
+  const list = (S.vaultOpen ? [...D.photos, ...D.vaultPhotos] : D.photos)
+    .slice().sort((a, b) => seq(b) - seq(a));
   $('albumTitle').textContent = '全部照片（' + list.length + '）';
   $('albumGrid').innerHTML = list.map(p => `
     <div class="cell ${p.docKind ? 'doc' : ''}" data-photo="${p.id}">
